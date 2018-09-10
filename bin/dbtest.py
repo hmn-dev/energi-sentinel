@@ -9,17 +9,17 @@ import config
 from models import Superblock, Proposal, GovernanceObject, Setting, Signal, Vote, Outcome, Watchdog
 from models import VoteSignals, VoteOutcomes
 from peewee import PeeweeException  # , OperationalError, IntegrityError
-from vivod import VivoDaemon
-import vivolib
+from hostmasternoded import hostmasternodeDaemon
+import hostmasternodelib
 from decimal import Decimal
-vivod = VivoDaemon.from_vivo_conf(config.vivo_conf)
+hostmasternoded = hostmasternodeDaemon.from_hostmasternode_conf(config.hostmasternode_conf)
 import misc
 # ==============================================================================
 # do stuff here
 
 pr = Proposal(
     name='proposal7',
-    url='https://vivocentral.com/proposal7',
+    url='https://hostmasternodecentral.com/proposal7',
     payment_address='yTC62huR4YQEPn9AJHjnQxxreHSbgAoatV',
     payment_amount=39.23,
     start_epoch=1483250400,
@@ -33,13 +33,13 @@ pr = Proposal(
 # )
 
 
-# TODO: make this a test, mock 'vivod' and tie a test block height to a
+# TODO: make this a test, mock 'hostmasternoded' and tie a test block height to a
 # timestamp, ensure only unit testing a within_window method
 #
 # also, create the `within_window` or similar method & use that.
 #
 bh = 131112
-bh_epoch = vivod.block_height_to_epoch(bh)
+bh_epoch = hostmasternoded.block_height_to_epoch(bh)
 
 fudge = 72000
 window_start = 1483689082 - fudge
@@ -56,7 +56,7 @@ else:
     print("Within window, we're good!")
 
 # pdb.set_trace()
-# vivod.get_object_list()
+# hostmasternoded.get_object_list()
 # ==============================================================================
 # pdb.set_trace()
 1
