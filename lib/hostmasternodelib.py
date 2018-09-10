@@ -13,14 +13,14 @@ import time
 import config
 
 
-def is_valid_vivo_address(address, network='mainnet'):
+def is_valid_hostmasternode_address(address, network='mainnet'):
     # Only public key addresses are allowed
     # A valid address is a RIPEMD-160 hash which contains 20 bytes
     # Prior to base58 encoding 1 version byte is prepended and
     # 4 checksum bytes are appended so the total number of
     # base58 encoded bytes should be 25.  This means the number of characters
     # in the encoding should be about 34 ( 25 * log2( 256 ) / log2( 58 ) ).
-    vivo_version = 140 if network == 'testnet' else 70
+    hostmasternode_version = 140 if network == 'testnet' else 70
 
     # Check length (This is important because the base58 library has problems
     # with long addresses (which are invalid anyway).
@@ -33,10 +33,10 @@ def is_valid_vivo_address(address, network='mainnet'):
         decoded = base58.b58decode_chk(address)
         address_version = ord(decoded[0:1])
     except:
-        # rescue from exception, not a valid Vivo address
+        # rescue from exception, not a valid hostmasternode address
         return False
 
-    if (address_version != vivo_version):
+    if (address_version != hostmasternode_version):
         return False
 
     return True
@@ -180,45 +180,45 @@ def create_superblock(proposals, event_block_height, budget_max, sb_epoch_time):
     return sb
 
 
-# shims 'til we can fix the vivod side
-def SHIM_serialise_for_vivod(sentinel_hex):
-    from models import VIVOD_GOVOBJ_TYPES
+# shims 'til we can fix the hostmasternoded side
+def SHIM_serialise_for_hostmasternoded(sentinel_hex):
+    from models import hostmasternodeD_GOVOBJ_TYPES
     # unpack
     obj = deserialise(sentinel_hex)
 
-    # shim for vivod
+    # shim for hostmasternoded
     govtype = obj[0]
 
     # add 'type' attribute
-    obj[1]['type'] = VIVOD_GOVOBJ_TYPES[govtype]
+    obj[1]['type'] = hostmasternodeD_GOVOBJ_TYPES[govtype]
 
-    # superblock => "trigger" in vivod
+    # superblock => "trigger" in hostmasternoded
     if govtype == 'superblock':
         obj[0] = 'trigger'
 
-    # vivod expects an array (even though there is only a 1:1 relationship between govobj->class)
+    # hostmasternoded expects an array (even though there is only a 1:1 relationship between govobj->class)
     obj = [obj]
 
     # re-pack
-    vivod_hex = serialise(obj)
-    return vivod_hex
+    hostmasternoded_hex = serialise(obj)
+    return hostmasternoded_hex
 
 
-# shims 'til we can fix the vivod side
-def SHIM_deserialise_from_vivod(vivod_hex):
-    from models import VIVOD_GOVOBJ_TYPES
+# shims 'til we can fix the hostmasternoded side
+def SHIM_deserialise_from_hostmasternoded(hostmasternoded_hex):
+    from models import hostmasternodeD_GOVOBJ_TYPES
 
     # unpack
-    obj = deserialise(vivod_hex)
+    obj = deserialise(hostmasternoded_hex)
 
-    # shim from vivod
+    # shim from hostmasternoded
     # only one element in the array...
     obj = obj[0]
 
     # extract the govobj type
     govtype = obj[0]
 
-    # superblock => "trigger" in vivod
+    # superblock => "trigger" in hostmasternoded
     if govtype == 'trigger':
         obj[0] = govtype = 'superblock'
 
@@ -251,7 +251,7 @@ def did_we_vote(output):
     voted = False
     err_msg = ''
 
-    _, config_filename = os.path.split(config.vivo_conf)
+    _, config_filename = os.path.split(config.hostmasternode_conf)
     try:
         detail = output.get('detail').get(config_filename)
         result = detail.get('result')
