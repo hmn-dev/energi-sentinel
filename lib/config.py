@@ -3,28 +3,28 @@
 """
 import sys
 import os
-from vivo_config import VivoConfig
+from hostmasternode_config import hostmasternodeConfig
 
 default_sentinel_config = os.path.normpath(
     os.path.join(os.path.dirname(__file__), '../sentinel.conf')
 )
 sentinel_config_file = os.environ.get('SENTINEL_CONFIG', default_sentinel_config)
-sentinel_cfg = VivoConfig.tokenize(sentinel_config_file)
+sentinel_cfg = hostmasternodeConfig.tokenize(sentinel_config_file)
 sentinel_version = "1.1.0"
-min_vivod_proto_version_with_sentinel_ping = 70207
+min_hostmasternoded_proto_version_with_sentinel_ping = 70207
 
-def get_vivo_conf():
+def get_hostmasternode_conf():
     home = os.environ.get('HOME')
 
     if sys.platform == 'darwin':
-        vivo_conf = os.path.join(home, "Library/Application Support/VivoCore/vivo.conf")
+        hostmasternode_conf = os.path.join(home, "Library/Application Support/hostmasternodeCore/hostmasternode.conf")
     elif sys.platform == 'win32':
-        vivo_conf = os.path.join(os.environ['APPDATA'], "VivoCore/Vivo.conf")
+        hostmasternode_conf = os.path.join(os.environ['APPDATA'], "hostmasternodeCore/hostmasternode.conf")
     else:
-        vivo_conf = os.path.join(home, ".vivocore/vivo.conf")
-        vivo_conf = sentinel_cfg.get('vivo_conf', vivo_conf)
+        hostmasternode_conf = os.path.join(home, ".hostmasternodecore/hostmasternode.conf")
+        hostmasternode_conf = sentinel_cfg.get('hostmasternode_conf', hostmasternode_conf)
 
-    return vivo_conf
+    return hostmasternode_conf
 
 def get_network():
     return sentinel_cfg.get('network', 'mainnet')
@@ -79,6 +79,6 @@ def get_db_conn():
     return db
 
 
-vivo_conf = get_vivo_conf()
+hostmasternode_conf = get_hostmasternode_conf()
 network = get_network()
 db = get_db_conn()
