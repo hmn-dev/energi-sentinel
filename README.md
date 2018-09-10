@@ -1,28 +1,28 @@
-# Vivo Sentinel
+# Hostmasternode Sentinel
 
-### Follow the installation steps below or the official Vivo sentinel guide: https://www.vivocrypto.com/vivo-technologies/masternodes/sentinel-guide/
+### Follow the installation steps below or the official Hostmasternode sentinel guide: 
 
 
-Sentinel is an all-powerful toolset for Vivo.
+Sentinel is an all-powerful toolset for hostmasternode.
 
-Sentinel is an autonomous agent for persisting, processing and automating Vivo V12.1 governance objects and tasks, and for expanded functions in upcoming releases.
+Sentinel is an autonomous agent for persisting, processing and automating hostmasternode V12.1 governance objects and tasks, and for expanded functions in upcoming releases.
 
-Sentinel is implemented as a Python application that binds to a local version 12.1 vivod instance on each Vivo V12.1 Masternode.
+Sentinel is implemented as a Python application that binds to a local version 12.1 hostmasternoded instance on each hostmasternode V12.1 Masternode.
 
 This guide covers installing Sentinel onto an existing 12.1 Masternode in Ubuntu 14.04 / 16.04.
 
-Alternatively to the guide on the Vivo website, you can also follow the simple step-by-step guide below. Before you proceed it is advisable to restart your masternode with -reindex to make sure you start off the steps fresh and fully synced - it will save you time later on in the guide as well.
+Alternatively to the guide on the hostmasternode website, you can also follow the simple step-by-step guide below. Before you proceed it is advisable to restart your masternode with -reindex to make sure you start off the steps fresh and fully synced - it will save you time later on in the guide as well.
 
 
-    cd .vivocore   // Adjust according to your root Vivo directory path
+    cd .hostmasternodecore   // Adjust according to your root hostmasternode directory path
 
-    ./vivo-cli stop
+    ./hostmasternode-cli stop
 
     rm mncache.dat
 
     rm mnpayments.dat
 
-    ./vivod -daemon -reindex
+    ./hostmasternoded -daemon -reindex
 
 
 
@@ -38,16 +38,17 @@ Update system packages and ensure virtualenv is installed:
 
     $ sudo apt-get update
     $ sudo apt-get -y install python-virtualenv
+    $ sudo apt-get install virtualenv -y
 
-Make sure the local Vivo daemon running is at least version 12.1 (120100)
+Make sure the local hostmasternode daemon running is at least version 12.1 (120100)
 
-    $ vivo-cli getinfo | grep version
+    $ hostmasternode-cli getinfo | grep version
 
 ### 2. Install Sentinel
 
 Clone the Sentinel repo and install Python dependencies.
 
-    $ git clone https://github.com/vivocoin/sentinel.git && cd sentinel
+    $ git clone https://github.com/hmn-dev/sentinel.git && cd sentinel
     $ virtualenv ./venv
     $ ./venv/bin/pip install -r requirements.txt
 
@@ -58,31 +59,31 @@ Open sentinel.conf - Run the following command in linux:
 
     $ nano sentinel.conf
 
-Uncomment the #vivo_conf line, at the top of the file, then adjust the path to your Masternode’s vivo.conf. Save the file then close it.
+Uncomment the #hostmasternode_conf line, at the top of the file, then adjust the path to your Masternode’s hostmasternode.conf. Save the file then close it.
 
-    vivo_conf=/path/to/vivo.conf
+    hostmasternode_conf=/path/to/hostmasternode.conf
 
 Now run:
 
     $ venv/bin/python bin/sentinel.py
 
-You should see: “vivod not synced with network! Awaiting full sync before running Sentinel.”
+You should see: “hostmasternoded not synced with network! Awaiting full sync before running Sentinel.”
 This is exactly what we want to see at this stage.
 
 If the wallet has been resynched alreaedy, you will see no output which is what you want to see and it means you can skip the next sync step.
 
 
-## 4. Check That Your Vivo Wallet is Synced 
+## 4. Check That Your hostmasternode Wallet is Synced 
 
-Go back into your root Vivo directory, then check the status of your sync:
+Go back into your root hostmasternode directory, then check the status of your sync:
 
     cd .. 
-    ./vivo-cli mnsync status
+    ./hostmasternode-cli mnsync status
 
 
 This is what you’re waiting to see:
 
-AssetId 999, all trues, one false, and a FINISHED. Keep issuing ./vivo-cli mnsync status until it looks like this:
+AssetId 999, all trues, one false, and a FINISHED. Keep issuing ./hostmasternode-cli mnsync status until it looks like this:
 
 
     {
@@ -127,7 +128,7 @@ Run:
 
 Add the following line below to the end of the file:
 
-    * * * * * cd /home/YOURUSERNAME/.vivocore/sentinel && ./venv/bin/python bin/sentinel.py 2>&1 >> sentinel-cron.log
+    * * * * * cd /home/YOURUSERNAME/.hostmasternodecore/sentinel && ./venv/bin/python bin/sentinel.py 2>&1 >> sentinel-cron.log
     
 
 Make sure you:
@@ -139,13 +140,13 @@ Save and exit.
 
 ## 8. All Done On Sentinel. Finally Check Your Masternode
 
-Go back into your Vivo root directory:
+Go back into your hostmasternode root directory:
 
     cd ..
 
 Run:
 
-    ./vivo-cli masternode debug
+    ./hostmasternode-cli masternode debug
 
 You should see the message “Masternode successfully started.”. If you have followed all the steps outlined in the guide accurately and achieved this result - this is it, you've made it. Congratulations!
 
