@@ -57,23 +57,23 @@ def is_database_correctly_configured():
     return configured
 
 
-def has_vivo_conf():
+def has_hostmasternode_conf():
     import config
     import io
 
-    valid_vivo_conf = False
+    valid_hostmasternode_conf = False
 
-    # ensure vivo_conf exists & readable
+    # ensure hostmasternode_conf exists & readable
     #
-    # if not, print a message stating that Vivo Core must be installed and
-    # configured, including JSONRPC access in vivo.conf
+    # if not, print a message stating that hostmasternode Core must be installed and
+    # configured, including JSONRPC access in hostmasternode.conf
     try:
-        f = io.open(config.vivo_conf)
-        valid_vivo_conf = True
+        f = io.open(config.hostmasternode_conf)
+        valid_hostmasternode_conf = True
     except IOError as e:
         print(e)
 
-    return valid_vivo_conf
+    return valid_hostmasternode_conf
 
 
 # === begin main
@@ -95,8 +95,8 @@ def main():
         print("Please ensure correct database configuration.")
         sys.exit(1)
 
-    if not has_vivo_conf():
-        print("VivoCore must be installed and configured, including JSONRPC access in vivo.conf")
+    if not has_hostmasternode_conf():
+        print("hostmasternodeCore must be installed and configured, including JSONRPC access in hostmasternode.conf")
         sys.exit(1)
 
 
