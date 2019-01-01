@@ -57,23 +57,23 @@ def is_database_correctly_configured():
     return configured
 
 
-def has_hostmasternode_conf():
+def has_energi_conf():
     import config
     import io
 
-    valid_hostmasternode_conf = False
+    valid_energi_conf = False
 
-    # ensure hostmasternode_conf exists & readable
+    # ensure energi_conf exists & readable
     #
-    # if not, print a message stating that hostmasternode Core must be installed and
-    # configured, including JSONRPC access in hostmasternode.conf
+    # if not, print a message stating that energi Core must be installed and
+    # configured, including JSONRPC access in energi.conf
     try:
-        f = io.open(config.hostmasternode_conf)
-        valid_hostmasternode_conf = True
+        f = io.open(config.energi_conf)
+        valid_energi_conf = True
     except IOError as e:
         print(e)
 
-    return valid_hostmasternode_conf
+    return valid_energi_conf
 
 
 # === begin main
@@ -95,8 +95,8 @@ def main():
         print("Please ensure correct database configuration.")
         sys.exit(1)
 
-    if not has_hostmasternode_conf():
-        print("hostmasternodeCore must be installed and configured, including JSONRPC access in hostmasternode.conf")
+    if not has_energi_conf():
+        print("energiCore must be installed and configured, including JSONRPC access in energi.conf")
         sys.exit(1)
 
 
