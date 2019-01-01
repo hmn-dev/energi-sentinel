@@ -5,7 +5,7 @@ sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '../lib
 import init
 import config
 import misc
-from hostmasternoded import hostmasternodeDaemon
+from energid import energiDaemon
 from models import Superblock, Proposal, GovernanceObject, Watchdog
 from models import VoteSignals, VoteOutcomes, Transient
 import socket
@@ -19,22 +19,22 @@ from scheduler import Scheduler
 import argparse
 
 
-# sync hostmasternoded gobject list with our local relational DB backend
-def perform_hostmasternoded_object_sync(hostmasternoded):
-    GovernanceObject.sync(hostmasternoded)
+# sync energid gobject list with our local relational DB backend
+def perform_energid_object_sync(energid):
+    GovernanceObject.sync(energid)
 
 
 # delete old watchdog objects, create new when necessary
-def watchdog_check(hostmasternoded):
+def watchdog_check(energid):
     printdbg("in watchdog_check")
 
     # delete expired watchdogs
-    for wd in Watchdog.expired(hostmasternoded):
+    for wd in Watchdog.expired(energid):
         printdbg("\tFound expired watchdog [%s], voting to delete" % wd.object_hash)
-        wd.vote(hostmasternoded, VoteSignals.delete, VoteOutcomes.yes)
+        wd.vote(energid, VoteSignals.delete, VoteOutcomes.yes)
 
     # now, get all the active ones...
-    active_wd = Watchdog.active(hostmasternoded)
+    active_wd = Watchdog.active(energid)
     active_count = active_wd.count()
 
     # none exist, submit a new one to the network
@@ -42,7 +42,7 @@ def watchdog_check(hostmasternoded):
         # create/submit one
         printdbg("\tNo watchdogs exist... submitting new one.")
         wd = Watchdog(created_at=int(time.time()))
-        wd.submit(hostmasternoded)
+        wd.submit(energid)
 
     else:
         wd_list = sorted(active_wd, key=lambda wd: wd.object_hash)
@@ -50,35 +50,35 @@ def watchdog_check(hostmasternoded):
         # highest hash wins
         winner = wd_list.pop()
         printdbg("\tFound winning watchdog [%s], voting VALID" % winner.object_hash)
-        winner.vote(hostmasternoded, VoteSignals.valid, VoteOutcomes.yes)
+        winner.vote(energid, VoteSignals.valid, VoteOutcomes.yes)
 
         # if remaining Watchdogs exist in the list, vote delete
         for wd in wd_list:
             printdbg("\tFound losing watchdog [%s], voting DELETE" % wd.object_hash)
-            wd.vote(hostmasternoded, VoteSignals.delete, VoteOutcomes.yes)
+            wd.vote(energid, VoteSignals.delete, VoteOutcomes.yes)
 
     printdbg("leaving watchdog_check")
 
 
-def prune_expired_proposals(hostmasternoded):
+def prune_expired_proposals(energid):
     # vote delete for old proposals
-    for proposal in Proposal.expired(hostmasternoded.superblockcycle()):
-        proposal.vote(hostmasternoded, VoteSignals.delete, VoteOutcomes.yes)
+    for proposal in Proposal.expired(energid.superblockcycle()):
+        proposal.vote(energid, VoteSignals.delete, VoteOutcomes.yes)
 
 
-# ping hostmasternoded
-def sentinel_ping(hostmasternoded):
+# ping energid
+def sentinel_ping(energid):
     printdbg("in sentinel_ping")
 
-    hostmasternoded.ping()
+    energid.ping()
 
     printdbg("leaving sentinel_ping")
 
 
-def attempt_superblock_creation(hostmasternoded):
-    import hostmasternodelib
+def attempt_superblock_creation(energid):
+    import energilib
 
-    if not hostmasternoded.is_masternode():
+    if not energid.is_masternode():
         print("We are not a Masternode... can't submit superblocks!")
         return
 
@@ -89,7 +89,7 @@ def attempt_superblock_creation(hostmasternoded):
     # has this masternode voted on *any* superblocks at the given event_block_height?
     # have we voted FUNDING=YES for a superblock for this specific event_block_height?
 
-    event_block_height = hostmasternoded.next_superblock_height()
+    event_block_height = energid.next_superblock_height()
 
     if Superblock.is_voted_funding(event_block_height):
         # printdbg("ALREADY VOTED! 'til next time!")
@@ -97,20 +97,20 @@ def attempt_superblock_creation(hostmasternoded):
         # vote down any new SBs because we've already chosen a winner
         for sb in Superblock.at_height(event_block_height):
             if not sb.voted_on(signal=VoteSignals.funding):
-                sb.vote(hostmasternoded, VoteSignals.funding, VoteOutcomes.no)
+                sb.vote(energid, VoteSignals.funding, VoteOutcomes.no)
 
         # now return, we're done
         return
 
-    if not hostmasternoded.is_govobj_maturity_phase():
+    if not energid.is_govobj_maturity_phase():
         printdbg("Not in maturity phase yet -- will not attempt Superblock")
         return
 
-    proposals = Proposal.approved_and_ranked(proposal_quorum=hostmasternoded.governance_quorum(), next_superblock_max_budget=hostmasternoded.next_superblock_max_budget())
-    budget_max = hostmasternoded.get_superblock_budget_allocation(event_block_height)
-    sb_epoch_time = hostmasternoded.block_height_to_epoch(event_block_height)
+    proposals = Proposal.approved_and_ranked(proposal_quorum=energid.governance_quorum(), next_superblock_max_budget=energid.next_superblock_max_budget())
+    budget_max = energid.get_superblock_budget_allocation(event_block_height)
+    sb_epoch_time = energid.block_height_to_epoch(event_block_height)
 
-    sb = hostmasternodelib.create_superblock(proposals, event_block_height, budget_max, sb_epoch_time)
+    sb = energilib.create_superblock(proposals, event_block_height, budget_max, sb_epoch_time)
     if not sb:
         printdbg("No superblock created, sorry. Returning.")
         return
@@ -118,12 +118,12 @@ def attempt_superblock_creation(hostmasternoded):
     # find the deterministic SB w/highest object_hash in the DB
     dbrec = Superblock.find_highest_deterministic(sb.hex_hash())
     if dbrec:
-        dbrec.vote(hostmasternoded, VoteSignals.funding, VoteOutcomes.yes)
+        dbrec.vote(energid, VoteSignals.funding, VoteOutcomes.yes)
 
         # any other blocks which match the sb_hash are duplicates, delete them
         for sb in Superblock.select().where(Superblock.sb_hash == sb.hex_hash()):
             if not sb.voted_on(signal=VoteSignals.funding):
-                sb.vote(hostmasternoded, VoteSignals.delete, VoteOutcomes.yes)
+                sb.vote(energid, VoteSignals.delete, VoteOutcomes.yes)
 
         printdbg("VOTED FUNDING FOR SB! We're done here 'til next superblock cycle.")
         return
@@ -131,24 +131,24 @@ def attempt_superblock_creation(hostmasternoded):
         printdbg("The correct superblock wasn't found on the network...")
 
     # if we are the elected masternode...
-    if (hostmasternoded.we_are_the_winner()):
+    if (energid.we_are_the_winner()):
         printdbg("we are the winner! Submit SB to network")
-        sb.submit(hostmasternoded)
+        sb.submit(energid)
 
 
-def check_object_validity(hostmasternoded):
+def check_object_validity(energid):
     # vote (in)valid objects
     for gov_class in [Proposal, Superblock]:
         for obj in gov_class.select():
-            obj.vote_validity(hostmasternoded)
+            obj.vote_validity(energid)
 
 
-def is_hostmasternoded_port_open(hostmasternoded):
+def is_energid_port_open(energid):
     # test socket open before beginning, display instructive message to MN
     # operators if it's not
     port_open = False
     try:
-        info = hostmasternoded.rpc_command('getgovernanceinfo')
+        info = energid.rpc_command('getgovernanceinfo')
         port_open = True
     except (socket.error, JSONRPCException) as e:
         print("%s" % e)
@@ -157,21 +157,21 @@ def is_hostmasternoded_port_open(hostmasternoded):
 
 
 def main():
-    hostmasternoded = hostmasternodeDaemon.from_hostmasternode_conf(config.hostmasternode_conf)
+    energid = energiDaemon.from_energi_conf(config.energi_conf)
     options = process_args()
 
-    # check hostmasternoded connectivity
-    if not is_hostmasternoded_port_open(hostmasternoded):
-        print("Cannot connect to hostmasternoded. Please ensure hostmasternoded is running and the JSONRPC port is open to Sentinel.")
+    # check energid connectivity
+    if not is_energid_port_open(energid):
+        print("Cannot connect to energid. Please ensure energid is running and the JSONRPC port is open to Sentinel.")
         return
 
-    # check hostmasternoded sync
-    if not hostmasternoded.is_synced():
-        print("hostmasternoded not synced with network! Awaiting full sync before running Sentinel.")
+    # check energid sync
+    if not energid.is_synced():
+        print("energid not synced with network! Awaiting full sync before running Sentinel.")
         return
 
     # ensure valid masternode
-    if not hostmasternoded.is_masternode():
+    if not energid.is_masternode():
         print("Invalid Masternode Status, cannot continue.")
         return
 
@@ -203,22 +203,22 @@ def main():
     # ========================================================================
     #
     # load "gobject list" rpc command data, sync objects into internal database
-    perform_hostmasternoded_object_sync(hostmasternoded)
+    perform_energid_object_sync(energid)
 
-    if hostmasternoded.has_sentinel_ping:
-        sentinel_ping(hostmasternoded)
+    if energid.has_sentinel_ping:
+        sentinel_ping(energid)
     else:
         # delete old watchdog objects, create a new if necessary
-        watchdog_check(hostmasternoded)
+        watchdog_check(energid)
 
     # auto vote network objects as valid/invalid
-    # check_object_validity(hostmasternoded)
+    # check_object_validity(energid)
 
     # vote to delete expired proposals
-    prune_expired_proposals(hostmasternoded)
+    prune_expired_proposals(energid)
 
     # create a Superblock if necessary
-    attempt_superblock_creation(hostmasternoded)
+    attempt_superblock_creation(energid)
 
     # schedule the next run
     Scheduler.schedule_next_run()
