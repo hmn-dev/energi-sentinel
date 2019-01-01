@@ -3,28 +3,28 @@
 """
 import sys
 import os
-from hostmasternode_config import hostmasternodeConfig
+from energi_config import energiConfig
 
 default_sentinel_config = os.path.normpath(
     os.path.join(os.path.dirname(__file__), '../sentinel.conf')
 )
 sentinel_config_file = os.environ.get('SENTINEL_CONFIG', default_sentinel_config)
-sentinel_cfg = hostmasternodeConfig.tokenize(sentinel_config_file)
+sentinel_cfg = energiConfig.tokenize(sentinel_config_file)
 sentinel_version = "1.1.0"
-min_hostmasternoded_proto_version_with_sentinel_ping = 70207
+min_energid_proto_version_with_sentinel_ping = 70207
 
-def get_hostmasternode_conf():
+def get_energi_conf():
     home = os.environ.get('HOME')
 
     if sys.platform == 'darwin':
-        hostmasternode_conf = os.path.join(home, "Library/Application Support/hostmasternodeCore/hostmasternode.conf")
+        energi_conf = os.path.join(home, "Library/Application Support/energicore/energi.conf")
     elif sys.platform == 'win32':
-        hostmasternode_conf = os.path.join(os.environ['APPDATA'], "hostmasternodeCore/hostmasternode.conf")
+        energi_conf = os.path.join(os.environ['APPDATA'], "energicore/energi.conf")
     else:
-        hostmasternode_conf = os.path.join(home, ".hostmasternodecore/hostmasternode.conf")
-        hostmasternode_conf = sentinel_cfg.get('hostmasternode_conf', hostmasternode_conf)
+        energi_conf = os.path.join(home, ".energicore/energi.conf")
+        energi_conf = sentinel_cfg.get('energi_conf', energi_conf)
 
-    return hostmasternode_conf
+    return energi_conf
 
 def get_network():
     return sentinel_cfg.get('network', 'mainnet')
@@ -79,6 +79,6 @@ def get_db_conn():
     return db
 
 
-hostmasternode_conf = get_hostmasternode_conf()
+energi_conf = get_energi_conf()
 network = get_network()
 db = get_db_conn()
