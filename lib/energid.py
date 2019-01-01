@@ -1,5 +1,5 @@
 """
-hostmasternoded JSONRPC interface
+energid JSONRPC interface
 """
 import sys
 import os
@@ -13,9 +13,9 @@ from decimal import Decimal
 import time
 
 
-class hostmasternodeDaemon():
+class energiDaemon():
     def __init__(self, **kwargs):
-        host = config.sentinel_cfg.get('hostmasternode_host', None)
+        host = config.sentinel_cfg.get('energi_host', None)
         if host is None:
             host = kwargs.get('host', '127.0.0.1')
         user = kwargs.get('user')
@@ -24,7 +24,7 @@ class hostmasternodeDaemon():
 
         self.creds = (user, password, host, port)
 
-        # memoize calls to some hostmasternoded methods
+        # memoize calls to some energid methods
         self.governance_info = None
         self.gobject_votes = {}
 
@@ -33,10 +33,10 @@ class hostmasternodeDaemon():
         return AuthServiceProxy("http://{0}:{1}@{2}:{3}".format(*self.creds))
 
     @classmethod
-    def from_hostmasternode_conf(self, hostmasternode_dot_conf):
-        from hostmasternode_config import hostmasternodeConfig
-        config_text = hostmasternodeConfig.slurp_config_file(hostmasternode_dot_conf)
-        creds = hostmasternodeConfig.get_rpc_creds(config_text, config.network)
+    def from_energi_conf(self, energi_dot_conf):
+        from energi_config import energiConfig
+        config_text = energiConfig.slurp_config_file(energi_dot_conf)
+        creds = energiConfig.get_rpc_creds(config_text, config.network)
 
         return self(**creds)
 
@@ -59,7 +59,7 @@ class hostmasternodeDaemon():
         return golist
 
     def get_current_masternode_vin(self):
-        from hostmasternodelib import parse_masternode_status_vin
+        from energilib import parse_masternode_status_vin
 
         my_vin = None
 
@@ -144,7 +144,7 @@ class hostmasternodeDaemon():
     # "my" votes refers to the current running masternode
     # memoized on a per-run, per-object_hash basis
     def get_my_gobject_votes(self, object_hash):
-        import hostmasternodelib
+        import energilib
         if not self.gobject_votes.get(object_hash):
             my_vin = self.get_current_masternode_vin()
             # if we can't get MN vin from output of `masternode status`,
@@ -156,7 +156,7 @@ class hostmasternodeDaemon():
 
             cmd = ['gobject', 'getcurrentvotes', object_hash, txid, vout_index]
             raw_votes = self.rpc_command(*cmd)
-            self.gobject_votes[object_hash] = hostmasternodelib.parse_raw_votes(raw_votes)
+            self.gobject_votes[object_hash] = energilib.parse_raw_votes(raw_votes)
 
         return self.gobject_votes[object_hash]
 
@@ -180,11 +180,11 @@ class hostmasternodeDaemon():
         return (current_height >= maturity_phase_start_block)
 
     def we_are_the_winner(self):
-        import hostmasternodelib
+        import energilib
         # find the elected MN vin for superblock creation...
         current_block_hash = self.current_block_hash()
         mn_list = self.get_masternodes()
-        winner = hostmasternodelib.elect_mn(block_hash=current_block_hash, mnlist=mn_list)
+        winner = energilib.elect_mn(block_hash=current_block_hash, mnlist=mn_list)
         my_vin = self.get_current_masternode_vin()
 
         # print "current_block_hash: [%s]" % current_block_hash
@@ -203,7 +203,7 @@ class hostmasternodeDaemon():
         return (self.MASTERNODE_WATCHDOG_MAX_SECONDS // 2)
 
     def estimate_block_time(self, height):
-        import hostmasternodelib
+        import energilib
         """
         Called by block_height_to_epoch if block height is in the future.
         Call `block_height_to_epoch` instead of this method.
@@ -216,7 +216,7 @@ class hostmasternodeDaemon():
         if (diff < 0):
             raise Exception("Oh Noes.")
 
-        future_seconds = hostmasternodelib.blocks_to_seconds(diff)
+        future_seconds = energilib.blocks_to_seconds(diff)
         estimated_epoch = int(time.time() + future_seconds)
 
         return estimated_epoch
@@ -244,7 +244,7 @@ class hostmasternodeDaemon():
     @property
     def has_sentinel_ping(self):
         getinfo = self.rpc_command('getinfo')
-        return (getinfo['protocolversion'] >= config.min_hostmasternoded_proto_version_with_sentinel_ping)
+        return (getinfo['protocolversion'] >= config.min_energid_proto_version_with_sentinel_ping)
 
     def ping(self):
         self.rpc_command('sentinelping', config.sentinel_version)
