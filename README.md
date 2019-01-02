@@ -1,28 +1,28 @@
-# Hostmasternode Sentinel
+# energi Sentinel
 
-### Follow the installation steps below or the official Hostmasternode sentinel guide: 
+### Follow the installation steps below : 
 
 
-Sentinel is an all-powerful toolset for hostmasternode.
+Sentinel is an all-powerful toolset for energi.
 
-Sentinel is an autonomous agent for persisting, processing and automating hostmasternode V12.1 governance objects and tasks, and for expanded functions in upcoming releases.
+Sentinel is an autonomous agent for persisting, processing and automating energi V12.1 governance objects and tasks, and for expanded functions in upcoming releases.
 
-Sentinel is implemented as a Python application that binds to a local version 12.1 hostmasternoded instance on each hostmasternode V12.1 Masternode.
+Sentinel is implemented as a Python application that binds to a local version 12.1 energid instance on each energi V12.1 Masternode.
 
 This guide covers installing Sentinel onto an existing 12.1 Masternode in Ubuntu 14.04 / 16.04.
 
-Alternatively to the guide on the hostmasternode website, you can also follow the simple step-by-step guide below. Before you proceed it is advisable to restart your masternode with -reindex to make sure you start off the steps fresh and fully synced - it will save you time later on in the guide as well.
+Alternatively to the guide on the energi website, you can also follow the simple step-by-step guide below. Before you proceed it is advisable to restart your masternode with -reindex to make sure you start off the steps fresh and fully synced - it will save you time later on in the guide as well.
 
 
-    cd .hostmasternodecore   // Adjust according to your root hostmasternode directory path
+    cd .energicore   // Adjust according to your root energi directory path
 
-    ./hostmasternode-cli stop
+    ./energi-cli stop
 
     rm mncache.dat
 
     rm mnpayments.dat
 
-    ./hostmasternoded -daemon -reindex
+    ./energid -daemon -reindex
 
 
 
@@ -40,9 +40,9 @@ Update system packages and ensure virtualenv is installed:
     $ sudo apt-get -y install python-virtualenv
     $ sudo apt-get install virtualenv -y
 
-Make sure the local hostmasternode daemon running is at least version 12.1 (120100)
+Make sure the local energi daemon running is at least version 12.1 (120100)
 
-    $ hostmasternode-cli getinfo | grep version
+    $ energi-cli getinfo | grep version
 
 ### 2. Install Sentinel
 
@@ -59,31 +59,31 @@ Open sentinel.conf - Run the following command in linux:
 
     $ nano sentinel.conf
 
-Uncomment the #hostmasternode_conf line, at the top of the file, then adjust the path to your Masternode’s hostmasternode.conf. Save the file then close it.
+Uncomment the #energi_conf line, at the top of the file, then adjust the path to your Masternode’s energi.conf. Save the file then close it.
 
-    hostmasternode_conf=/path/to/hostmasternode.conf
+    energi_conf=/path/to/energi.conf
 
 Now run:
 
     $ venv/bin/python bin/sentinel.py
 
-You should see: “hostmasternoded not synced with network! Awaiting full sync before running Sentinel.”
+You should see: “energid not synced with network! Awaiting full sync before running Sentinel.”
 This is exactly what we want to see at this stage.
 
 If the wallet has been resynched alreaedy, you will see no output which is what you want to see and it means you can skip the next sync step.
 
 
-## 4. Check That Your hostmasternode Wallet is Synced 
+## 4. Check That Your energi Wallet is Synced 
 
-Go back into your root hostmasternode directory, then check the status of your sync:
+Go back into your root energi directory, then check the status of your sync:
 
     cd .. 
-    ./hostmasternode-cli mnsync status
+    ./energi-cli mnsync status
 
 
 This is what you’re waiting to see:
 
-AssetId 999, all trues, one false, and a FINISHED. Keep issuing ./hostmasternode-cli mnsync status until it looks like this:
+AssetId 999, all trues, one false, and a FINISHED. Keep issuing ./energi-cli mnsync status until it looks like this:
 
 
     {
@@ -128,7 +128,7 @@ Run:
 
 Add the following line below to the end of the file:
 
-    * * * * * cd /home/YOURUSERNAME/.hostmasternodecore/sentinel && ./venv/bin/python bin/sentinel.py 2>&1 >> sentinel-cron.log
+    * * * * * cd /home/YOURUSERNAME/.energicore/sentinel && ./venv/bin/python bin/sentinel.py 2>&1 >> sentinel-cron.log
     
 
 Make sure you:
@@ -140,13 +140,13 @@ Save and exit.
 
 ## 8. All Done On Sentinel. Finally Check Your Masternode
 
-Go back into your hostmasternode root directory:
+Go back into your energi root directory:
 
     cd ..
 
 Run:
 
-    ./hostmasternode-cli masternode debug
+    ./energi-cli masternode debug
 
 You should see the message “Masternode successfully started.”. If you have followed all the steps outlined in the guide accurately and achieved this result - this is it, you've made it. Congratulations!
 
